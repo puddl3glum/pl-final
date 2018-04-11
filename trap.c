@@ -15,62 +15,31 @@ double f (double x) {
 }
 
 // integral function
-double integral(double (*f)(double), Pair range, double tolerance) {
-    // return (*f)(range.a);
-    List stack = new_list();
-    //printf("%d\n", empty(&stack));
-    //printf("%x\n", &stack);
-    //printf("%f %f\n", range.a, range.b);
-    push(&stack, range);
-    //printf("%d\n", empty(&stack));
+double integral(double (*f)(double), Pair range, int n) {
 
-    //Pair popped = pop(&stack);
-    //printf("%f %f\n", popped.a, popped.b);
+    double  h, x, integral = 0.0;
 
-    //printf("%d\n", empty(&stack));
-    //Pair top = stack.top->range;
-    //printf("%f %f\n", top.a, top.b);
-    //return;
+    int i;
 
-    // integral value
-    double I = 0;
+    double a = range.a;
+    double b = range.b;
+    
+    h = (b-a)/n;
+    integral += ((*f)(a) + (*f)(b))/2.0;
+    
+    #pragma omp parallel for schedule(static) default(none) \
+    shared(a, h, n, f) private(i, x) \
+    reduction(+: integral) //num_threads(thread_count)
 
-    #pragma omp parallel for shared(I, stack)
-    //for (;!empty(&stack);) {
-    for (int i = 0; i < 100; i++) {
-        //puts("loop");
-        // if () {
-        //     break;
-        // }
+    for (i = 1; i <= n - 1; i++) {
+        x = a + i*h;
+        integral += (*f)(x);
         
-        if (empty(&stack)) {
-            continue;
-        }
-        // interval [a,b] on top of stack removed from stack
-        Pair local_range = pop(&stack);
-        double a = local_range.a;
-        double b = local_range.b;
-        double I_1 = ((b - a) / 2) * ((*f)(a) + (*f)(b));
-        //printf("%f\n", I_1);
-
-        //printf("%f %f\n", a, b);
-        // return;
-        double m = (a + b) / 2;
-
-        double I_2 = ((b - a) / 4) * ((*f)(a) + 2 * (*f)(m) + (*f)(b));
-
-        if (fabs(I_1 - I_2) < 3 * (b - a) * tolerance) {
-            //puts("hi");
-            I = I + I_2;
-        } else {
-            //puts("hey");
-            push(&stack, (Pair){a, m});
-            push(&stack, (Pair){m, b});
-        }
-
     }
-
-    return I;
+    
+    integral = integral*h;
+    
+    return integral;
 
 }
 
@@ -82,7 +51,7 @@ int main() {
     fPtr = &f;
 
     //Pair range = (Pair){0, PI/4};
-    Pair range = (Pair){0, 10};
+    Pair range = (Pair){0, 2};
     
-    printf("%.16f\n", integral(f, range, 0.000000001));
+    printf("%.16f\n", integral(f, range, 10000));
 }
