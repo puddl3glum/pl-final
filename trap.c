@@ -43,7 +43,12 @@ double integral(double (*f)(double), Pair range, int n) {
 
 }
 
-int main() {
+int main(int argc, char * argv[]) {
+
+    double a, b;
+
+    a = atoi(argv[1]);
+    b = atoi(argv[2]);
 
     // declare function pointer
     double (*fPtr)(double);
@@ -51,7 +56,7 @@ int main() {
     fPtr = &f;
 
     //Pair range = (Pair){0, PI/4};
-    Pair range = (Pair){0, 2};
+    Pair range = (Pair){a, b};
     
     printf("%.16f\n", integral(f, range, 10000));
 }
