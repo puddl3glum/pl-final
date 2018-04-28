@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <math.h>
 #include <mutex>
 #include <stack>
 #include <string>
@@ -21,7 +22,7 @@ D integrate(Function f, pair<D, D> range, D tol) {
     auto int_val = make_shared<D>(0);
 
     // declare lambda for threading
-    auto calc_segment = [&](){
+    auto calc_segment = [&mut, &S, &int_val, tol, f](){
         // D a, b;
         mut.lock();
             auto [a, b] = S.top();
@@ -45,11 +46,19 @@ D integrate(Function f, pair<D, D> range, D tol) {
         mut.unlock();
     };
 
+    auto thread_limit = 256;
+
     vector<thread> threads;
 
     while (S.size()) {
+
+        thread_limit = S.size() < thread_limit ? S.size() : thread_limit;
+        // if (thread_num > 100) {
+        //     cout << thread_num << "\n";
+        // }
+        // cout << S.size() << "\n";
         
-        for (auto x = 0; x < S.size(); x++) {
+        for (auto x = 0; x < thread_limit; x++) {
             threads.push_back(thread(calc_segment));
         }
 
@@ -79,7 +88,9 @@ int main(int argc, char * argv[]) {
     pair<double, double> range(a, b);
     // declare the lambda to pass to integrate
     // template<typename D>
-    auto f = [](auto x){ return x*x;};
+    // auto f = [](auto x){ return x*x;};
+    // (e**(3 * x)) * sin(2 * x)
+    auto f = [](auto x){ return (exp(3 * x) * sin(2 * x));};
 
     // cout << f(b) << "\n";
 

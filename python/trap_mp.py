@@ -39,7 +39,7 @@ def integral(f, r: tuple, tol: float) -> float:
         # while the stack is not empty, compute the integral
         # map over every element of the stack
 
-        with Pool(len(stack)) as p:
+        with Pool(cpu_count()) as p:
             ret_list = p.map(compute, stack)
             int_sum += sum(filter(lambda x: type(x) == float, ret_list))
 
